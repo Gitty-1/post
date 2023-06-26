@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录</title>
+    <link rel="stylesheet" href="/css/loading.css">
+</head>
+<body>
+    <div class="container">
+        <div>请输入登录信息</div>
+        <form action="/post" method="post" >
+            <input type="text" name="account" placeholder="请输入用户名" class="message">
+            <input type="password" name="password" placeholder="请输入密码" class="message">
+            <br>
+            <% if(error === "用户名或密码不正确" || error === "用户名或密码不能为空"){ %>
+                <span class="error">
+                    <%= error %>
+                </span>
+            <% } %>
+            <input type="submit" value="登录" class="submit">
+            <input type="button" value="注册" class="register">
+        </form>
+    </div>
+    <script>
+        window.onload = function() {
+            var inp = document.getElementsByTagName("input")
+            inp[3].onclick = function() {
+                window.location.href = '/register'
+            }
+        }
+    </script>
+</body>
+</html>

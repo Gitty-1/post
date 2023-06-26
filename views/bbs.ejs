@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/css/bbs.css">
+    <script src="/js/wangeditor/dist/wangEditor.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="left-header">
+            <img src="/images/luntan_header1.png" alt="头部图片">
+        </div>
+        <div class="content-header">
+            请发布您的帖<span style="letter-spacing: 0;">子</span>
+        </div>
+        <span class="accounts">当前用户：<%= accounts.account %></span>
+    </header>
+    <div class="container">
+        <aside class="left-content"></aside>
+        <aside class="right-content"></aside>
+        <div class="page-content">
+            <div class="post-content">
+                <% post.forEach(item => { %>
+                    <a href="/post/<%= item.id %>" target="_blank">
+                        <input type="checkbox" value="<%= item.id %>" class="post_input">
+                        <span><%= item.title %></span>
+                        <span class="spa"><%= item.date %></span>
+                    </a>
+                    
+                <% }) %>
+                <button id="del_btn">删除</button>
+            </div>
+            <div class="choosePage">
+                <div class="choose">
+                    每页显示数量：
+                    <select id="select" >
+                        <!-- <option selected>0</option> -->
+                        <option selected>1</option>
+                        <option>2</option>
+                        <option>3</option>
+                        <option>4</option>
+                        <option>5</option>
+                    </select>
+                </div>
+                <ul></ul>
+            </div>
+            <div class="input-container">
+                <div class="input-title">
+                    <span>标题：</span>
+                    <input type="text" maxlength="10" class="title">
+                </div>
+                <div class="input-content">
+                    <textarea maxlength="100" id="textarea" name="textarea"></textarea>
+                </div>
+                <div class="input-button">
+                    <span>
+                        剩余可输入字数：
+                        <span id="num">100</span>
+                    </span>
+                    <button id="cancel">取消</button>
+                    <button id="send">发送</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        window.onload = function() {
+            
+            var myselect  = document.getElementById('select')
+            var a = document.getElementsByTagName('a')
+            var ul = document.getElementsByTagName('ul')
+
+            var spa = document.getElementsByClassName('spa')
+            spa[0].onclick = function(event) {
+                event.preventDefault();
+            }
+
+            // 记录当前处于第几页
+            var curr_page = 1
+            
+            Click()
+
+            
+
+            // 监控下拉框的选中值
+            myselect.onchange = function() {
+                // 每次修改每页展示的帖子数时都将页面重新定位到第一页
+                curr_page = 1
+                Click()
+            }
+
+            // 页数按钮
+            function changePage() {
+                ul[0].innerHTML = ""
+                var index = myselect.selectedIndex
+                var text = myselect.options[index].text
+                var length = a.length
+                var page_num = Math.ceil(length/text)
+                
+                // alert(page_num)
+                for(var i =0;i<page_num;i++)
+                {
+                    var oli = document.createElement('li') 
+                    oli.index = i+1
+                    var textNode = document.createTextNode(oli.index)
+                    oli.appendChild(textNode)
+                    ul[0].appendChild(oli)
+                    oli.onclick = function() {
+                        curr_page = this.index
+                        showPost(text, curr_page)
+                    }
+                }
+            }
+
+            // 制定帖子展示规则
+            function showPost(text, index) {
+                var index = text*(index-1)
+                var a = document.getElementsByTagName('a')
+                for(var j=0;j<a.length;j++)
+                {
+                    a[j].style.display = "none"
+                }
+                // 存储展示的贴子的索引
+                var postArr = []
+                for(var j=0;j<text;j++)
+                {
+                    postArr.push(index+j)
+                    a[index + j].style.display = "block"
+                }
+            }
+
+            // 响应下拉框和页面按钮的点击
+            function Click() {
+                changePage()
+                var index = myselect.selectedIndex
+                var text = myselect.options[index].text
+                showPost(text, curr_page)
+            }
+
+            // 删除数据
+            var checkboxs = document.getElementsByClassName('post_input')
+            var arr = new Array()
+            
+            var btn = document.getElementById('del_btn')
+
+            btn.onclick = function() {
+                if(confirm('确认删除吗')) {
+                    for(var i=0;i<checkboxs.length;i++)
+                    {
+                        if(checkboxs[i].checked) {
+                            arr.push(checkboxs[i].value)
+                        }
+                    }
+                    if(arr.length == 0) {
+                        alert('未选择要删除的帖子')
+                        return
+                    }
+                    window.location.href=`/delete/${arr}`
+                }
+            }
+
+            // 响应输入帖子
+            var input_title = document.getElementsByClassName('input_title')[0]
+            var title = document.getElementsByClassName('title')[0]
+            var input_content = document.getElementsByClassName('input_content')[0]
+
+            // var E = window.wangEditor
+            // // var editor = new E('#textarea')
+            // var content = new E( document.getElementById('textarea') )
+            // content.create()
+            var content = document.getElementById('textarea')
+
+            var left_num = document.getElementById('num')
+            // 获取剩余可输入字数
+            content.onkeyup = function() {
+                var textval = this.value.length
+                var str = 100-textval
+                left_num.innerHTML = str.toString()
+            }
+
+            // 发送和取消按钮
+            var cancel = document.getElementById('cancel')
+            var send = document.getElementById('send')
+            cancel.onclick = function() {
+                content.value = ""
+                left_num.innerHTML = 100
+            }
+            send.onclick = function() {
+                var title_val = title.value
+                var text_val = content.value
+                window.location.href = `/sendMsg?title=${title_val}&text=${text_val}`
+            }
+
+            
+            }
+    </script>
+</body>
+</html>
